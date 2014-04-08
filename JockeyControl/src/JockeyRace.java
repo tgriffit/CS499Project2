@@ -190,7 +190,6 @@ public class JockeyRace extends JFrame {
 			dodgeObstacle();
 			
 			foundLine = false;
-			// TODO: React to obstacles found during this movement
 			
 			// Arc to get back to the line
 //			while (!onTrackEdge()) {
@@ -349,20 +348,32 @@ public class JockeyRace extends JFrame {
 	private static void runObstacleCourse() {
 		if (sensors.canSeeObstacleLeft()) {
 			int power = getMidPower();
-			MotorManager.forward(power/6, 0);
+			MotorManager.turnRight(power/4);
 			
 			resetObstacleVars();
 		}
 		else if (sensors.canSeeObstacleRight()) {	
-			//int power = getMidPower();
+			int power = getMidPower();
 			//MotorManager.forward(power/6, -20);
-
-			turn90Right();
+			
+			MotorManager.backward(power, power);
+			Delay.msDelay(40);
+			
+			MotorManager.forward(power, 0);
+			Delay.msDelay(40);
+			
+			//turn90Right();
 			resetObstacleVars();
 		}
 		else if (sensors.canSeeObstacleMiddle()) {
 			int power = getMidPower();
-			MotorManager.forward(power/6, -10);
+			//MotorManager.forward(power/6, -10);
+			
+			MotorManager.backward(power, power);
+			Delay.msDelay(100);
+			
+			MotorManager.forward(power, 0);
+			Delay.msDelay(40);
 
 			//turn90Right();
 			resetObstacleVars();
@@ -466,7 +477,7 @@ public class JockeyRace extends JFrame {
 	
 	private static void setupValues() {
 		if (mappingDone && !obstaclesFound) {
-			
+			//??
 		}
 	}
 	
