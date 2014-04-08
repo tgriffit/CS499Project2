@@ -44,15 +44,14 @@ public class JockeyRace extends JFrame {
 	public static JLabel commands;
 	public static ButtonHandler bh = new ButtonHandler();
 	
-	private static JTextField kpEntry, kiEntry, kdEntry, speedmultEntry, targetpowerEntry, backpowerEntry;
+	private static JTextField kpEntry, kiEntry, kdEntry, speedmultEntry, targetpowerEntry;
 	private static JButton commitButton;
 	
 	private static int kp = 300;
-	private static int ki = 40;
-	private static int kd = 60;
+	private static int ki = 20;
+	private static int kd = 200;
 	
 	private static int targetpower = 10;
-	private static int backpower = 10;
 	
 	private static int speedmult = 3;
 	private static double currentmult = 1.0;
@@ -80,12 +79,8 @@ public class JockeyRace extends JFrame {
 		addKeyListener(bh);
 
 		String cmds = "<html>Buttons:<br>" 
-				+ "b: Bang Bang" + "<br>"
-				+ "p: P" + "<br>"
-				+ "i: PI" + "<br>"
-				+ "d: PD" + "<br>"
-				+ "a: PID" + "<br>"
-				+ "o: Run obstacle course" + "<br>"
+				+ "m: Map Track<br>"
+				+ "r: Race!<br>"
 				+ "<br>"
 				+ "s: Stop<br>" 
 				+ "<br>" 
@@ -112,9 +107,6 @@ public class JockeyRace extends JFrame {
 		targetpowerEntry = new JTextField();
 		p.add(createTextPanel(targetpowerEntry, "TP:"));
 		
-		backpowerEntry = new JTextField();
-		p.add(createTextPanel(backpowerEntry, "BP:"));
-
 		commitButton = new JButton("Commit");
 		commitButton.addMouseListener(bh);
 		p.add(commitButton);
@@ -443,7 +435,6 @@ public class JockeyRace extends JFrame {
 		kdEntry.setText(Integer.toString(kd));
 		speedmultEntry.setText(Integer.toString(speedmult));
 		targetpowerEntry.setText(Integer.toString(targetpower));
-		backpowerEntry.setText(Integer.toString(backpower));
 	}
 	
 	private static void commitValues() {
@@ -452,7 +443,6 @@ public class JockeyRace extends JFrame {
 		kd = new Integer(kdEntry.getText());
 		speedmult = new Integer(speedmultEntry.getText());
 		targetpower = new Integer(targetpowerEntry.getText());
-		backpower = new Integer(backpowerEntry.getText());
 	}
 
 	// Stahps.
