@@ -1,3 +1,4 @@
+package Sensors;
 
 import lejos.nxt.*;
 /**
