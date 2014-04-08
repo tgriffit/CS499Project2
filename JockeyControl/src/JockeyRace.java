@@ -14,7 +14,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
-import Behaviours.Behaviour;
 import Managers.*;
 import lejos.nxt.*;
 import lejos.util.Delay;
@@ -69,9 +68,6 @@ public class JockeyRace extends JFrame {
 	
 	private static boolean useInsideTrack = false;
 	
-	public static ArrayList<ArrayList<Behaviour>> avoidanceStrategy = new ArrayList<ArrayList<Behaviour>>();
-	private static int strategy = 0;
-
 	public JockeyRace() {
 		setLayout(new FlowLayout());
 
@@ -541,7 +537,6 @@ public class JockeyRace extends JFrame {
 			case 'm':
 				mode = Mode.Map;
 				position.reset();
-				avoidanceStrategy.clear();
 				mappingDone = true;
 				break;
 			
