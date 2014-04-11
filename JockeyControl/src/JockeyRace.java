@@ -60,11 +60,12 @@ public class JockeyRace extends JFrame {
 	private static int oldError = 0;
 	
 	private static boolean foundLine = false;
+	private static boolean correctedAfterFindingLine = false;
 	private static boolean sawObstacle = false;
 	private static boolean skipBadPart = false;
-	private static boolean recover = true;
 	private static boolean obstaclesFound = false;
 	private static boolean mappingDone = false;
+	private static boolean ignoreRightSensor = false;
 	
 	private static boolean useInsideTrack = false;
 	
@@ -141,9 +142,11 @@ public class JockeyRace extends JFrame {
 		
 		updateDisplayValues();
 		
+		foundLine = sensors.canSeeEdge();
+		
 		while (mode != Mode.Stop) {
 			//System.out.println(lightSensor.getLightValue());
-			//System.out.println("l: " + leftIR.getDistance() + " r: " + rightIR.getDistance() + " s: " + sideIR.getDistance());
+			//System.out.println(sensors.getDebugString());
 			
 			switch (mode) {
 			
@@ -207,7 +210,6 @@ public class JockeyRace extends JFrame {
 				else {
 					leftPower *= 5/8;
 				}
-				//useInsideTrack ? MotorManager.forward(targetpower, targetpower * 5 / 8) : MotorManager.forward(targetpower * 5 / 8, targetpower);
 				
 				MotorManager.forward(leftPower, rightPower);
 				
@@ -236,7 +238,7 @@ public class JockeyRace extends JFrame {
 	}
 	
 	private static void dodgeObstacle() {
-		turn90Right();
+		turn90Right(20);
 		if (!passObstacleOnSide()) {
 			dodgeObstacle();
 		}
@@ -245,7 +247,7 @@ public class JockeyRace extends JFrame {
 			return;
 		}
 		
-		turn90Left();
+		turn90Left(20);
 		//passObstacleOnSide();
 	}
 	
@@ -342,69 +344,118 @@ public class JockeyRace extends JFrame {
 	}
 	
 	private static void runObstacleCourse() {
-		if (sensors.canSeeObstacleLeft()) {
-			int power = getMidPower();
-			MotorManager.turnRight(power/4);
+//		if (sensors.canSeeObstacleLeft()) {
+//			int power = getMidPower();
+//			MotorManager.turnRight(power/4);
+//			
+//			resetObstacleVars();
+//		}
+//		else if (sensors.canSeeObstacleRight()) {	
+//			int power = getMidPower();
+//			//MotorManager.forward(power/6, -20);
+//			
+//			MotorManager.backward(power, power);
+//			Delay.msDelay(40);
+//			
+//			MotorManager.forward(power, 0);
+//			Delay.msDelay(40);
+//			
+////			MotorManager.backward(0, power);
+////			Delay.msDelay(50);
+////			
+////			MotorManager.forward(power, power);
+////			Delay.msDelay(80);
+//			
+//			//turn90Right();
+//			resetObstacleVars();
+//		}
+//		else if (sensors.canSeeObstacleMiddle()) {
+//			int power = getMidPower();
+//			//MotorManager.forward(power/6, -10);
+//			
+//			MotorManager.backward(0, power);
+//			Delay.msDelay(40);
+//			
+//			MotorManager.forward(power, 0);
+//			Delay.msDelay(40);
+//			//MotorManager.turnLeft(power);
+//
+//			//turn90Right();
+//			resetObstacleVars();
+//		}
+//		else if (!recover) {
+//			int power = getMidPower();
+////			MotorManager.forward(power * 4 / 8, power);
+//			MotorManager.forward(power, power);
+//			Delay.msDelay(500);
+//			
+//			recover = true;
+//		}
+		
+		if(sensors.canSeeObstacleMiddle() || (!ignoreRightSensor && sensors.canSeeObstacleRight())){
+			int angle = 90;
 			
-			resetObstacleVars();
-		}
-		else if (sensors.canSeeObstacleRight()) {	
-			int power = getMidPower();
-			//MotorManager.forward(power/6, -20);
-			
-			MotorManager.backward(power, power);
-			Delay.msDelay(40);
-			
-			MotorManager.forward(power, 0);
-			Delay.msDelay(40);
-			
-			//turn90Right();
-			resetObstacleVars();
-		}
-		else if (sensors.canSeeObstacleMiddle()) {
-			int power = getMidPower();
-			//MotorManager.forward(power/6, -10);
-			
-			MotorManager.backward(power, power);
-			Delay.msDelay(100);
-			
-			MotorManager.forward(power, 0);
-			Delay.msDelay(40);
+			MotorManager.stahp();
 
-			//turn90Right();
+			if (sensors.canSeeObstacleMiddle() && foundLine) {
+				ignoreRightSensor = true;
+				angle = 60;
+			}
+			
+			int power = 10;
+			
+			//if (sensors.canSeeObstacleRight()) {
+				MotorManager.backward(power, power);
+			//	Delay.msDelay(500);
+				Delay.msDelay(1000);
+			//}
+			
+			turnRightNDegrees(angle, power);
+			
+//			while(sensors.canSeeObstacleInFront()) {
+//				MotorManager.turnRight(power);
+//			}
+			
+//			if (startedOnLine) {
+//				while (!sensors.canSeeEdge()) {
+//					MotorManager.forward(power, power);
+//				}
+//				
+//			// overshoot the line we started on
+			if (foundLine) {
+				MotorManager.forward(power, power);
+				Delay.msDelay(1000);
+			}
+			
 			resetObstacleVars();
 		}
-		else if (!recover) {
-			int power = getMidPower();
-			MotorManager.forward(power * 4 / 8, power);
-			Delay.msDelay(300);
-			
-			recover = true;
-		}
-		else if (!foundLine){
-			// Arcs forward and to the left, trying to find the line
-			int power = getMidPower()*1/2;
-			MotorManager.forward(power * 4 / 8, power);
+		else if (!foundLine) {
+			if (sensors.canSeeObstacleToSide()) {
+				//turnRightNDegrees(10, 10);
+				MotorManager.forward(10, 10);
+			}
+			else {
+				// Arcs forward and to the left, trying to find the line
+				int power = getMidPower()*1/2;
+				MotorManager.forward((int)(power*1/2), power);
+			}
 			
 			if (sensors.canSeeOutsideTrack()) {
-				MotorManager.turnRight(20);
-				Delay.msDelay(40);
+				//while(sensors.canSeeOutsideTrack()) {
+					turnRightNDegrees(10, 10);
+				//}
 				foundLine = true;
+				ignoreRightSensor = false;
 				//obstaclesFound = false;
 			}
 		}
 		else if (skipBadPart) {
-//			if (obstaclesFound) {
-//				foundLine = false;
-//				skipBadPart = false;
-//			}
-//			else {
-				increasingArc();
+			increasingArc();
 
-				if (sensors.canSeeOutsideTrack()) {
-					skipBadPart = false;
-				}
-			//}
+			if (!sensors.canSeeWhite()) {
+				skipBadPart = false;
+				foundLine = sensors.canSeeOutsideTrack();
+			}
 		}
 		else {
 			followTrack();
@@ -414,25 +465,30 @@ public class JockeyRace extends JFrame {
 	private static double arc;
 	private static void increasingArc() {
 		int power = 80;
-		//System.out.println((int)(power*arc) + " " + arc);
 		MotorManager.forward(power, (int)(power*arc));
 		Delay.msDelay(40);
 		arc *= 0.97;
 	}
 	
+	private static void resetValues() {
+		foundLine = false;
+		resetPIDValues();
+		resetObstacleVars();
+	}
+	
 	private static void resetObstacleVars() {
 		foundLine = false;
 		skipBadPart = false;
-		recover = false;
+//		recover = false;
 		obstaclesFound = true;
+		
+		resetPIDValues();
 	}
 	
-	private static void resetValues() {
-		integral = 0;
-		sqrIntegral = 0;
-		oldError = 0;
-		currentmult = 1;
-		foundLine = false;
+	private static void resetPIDValues() {integral = 0;
+	sqrIntegral = 0;
+	oldError = 0;
+	currentmult = 1;
 	}
 	
 	private static void resetTachos() {
@@ -445,11 +501,11 @@ public class JockeyRace extends JFrame {
 		//System.out.println(position.x + " : " + position.y + " : " + position.heading);
 	}
 	
-	private static void turn90Right() {
+	private static void turn90Right(int power) {
 		position.reset();
 		
-		while (position.heading < DeadReckoningManager.NinetyDegrees) {
-			MotorManager.turnRight(30);
+		while (position.getCurrentHeading() < DeadReckoningManager.NinetyDegrees) {
+			MotorManager.turnRight(power);
 			
 			Delay.msDelay(10);
 			updatePosition();
@@ -458,11 +514,24 @@ public class JockeyRace extends JFrame {
 		MotorManager.stahp();
 	}
 	
-	private static void turn90Left() {
+	private static void turn90Left(int power) {
 		position.reset();
 		
-		while (position.heading > -DeadReckoningManager.NinetyDegrees) {
-			MotorManager.turnLeft(30);
+		while (position.getCurrentHeading() > -DeadReckoningManager.NinetyDegrees) {
+			MotorManager.turnLeft(power);
+			
+			Delay.msDelay(10);
+			updatePosition();
+		}
+		
+		MotorManager.stahp();
+	}
+	
+	private static void turnRightNDegrees(double n, int power) {
+		position.reset();
+		
+		while (position.getCurrentHeading() < n * Math.PI/180) {
+			MotorManager.turnRight(power);
 			
 			Delay.msDelay(10);
 			updatePosition();
@@ -544,13 +613,6 @@ public class JockeyRace extends JFrame {
 				mode = Mode.Race;
 				position.reset();
 				setupValues();
-				break;
-				
-			case '1':
-				turn90Left();
-				break;
-			case '2':
-				turn90Right();
 				break;
 				
 			case 'c':

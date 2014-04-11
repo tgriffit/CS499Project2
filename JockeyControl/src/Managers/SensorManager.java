@@ -13,10 +13,14 @@ public class SensorManager {
 	private LightSensor lightSensor = new LightSensor(SensorPort.S1);
 	
 	// Light values
-	private static int innerTrack = 30;
-	private static int outerTrack = 22;
+	private static int innerTrack = 31;
+	private static int outerTrack = 23;
 	private static int whiteTrack = 47;
-	private static int specialZone = 41;
+	private static int specialZone = 43;
+	
+	public String getDebugString() {
+		return "l: " + leftIR.getDistance() + " m: " + middleIR.getDistance() + " r: " + rightIR.getDistance();
+	}
 	
 	public void enable() {
 		lightSensor.setFloodlight(true);
@@ -32,13 +36,16 @@ public class SensorManager {
 		middleIR.powerOff();
 	}
 	
-	public boolean canSeeObstacleInFront() {
+	public boolean canSeeObstacle() {
 		return canSeeObstacle(leftIR) || canSeeObstacle(rightIR) || canSeeObstacle(middleIR);
 	}
 	
+	public boolean canSeeObstacleInFront() {
+		return canSeeObstacle(rightIR) || canSeeObstacle(middleIR);
+	}
+	
 	public boolean canSeeObstacleToSide() {
-		//return canSeeObstacle(sideIR);
-		return false;
+		return canSeeObstacle(leftIR);
 	}
 	
 	public boolean canSeeObstacleLeft() {
@@ -61,11 +68,16 @@ public class SensorManager {
 	}
 	
 	public boolean canSeeOutsideTrack() {
-		return lightSensor.getLightValue() < (outerTrack + 4);
+		return lightSensor.getLightValue() < (outerTrack + innerTrack)/2;
+	}
+	
+	public boolean canSeeWhite() {
+		//return lightSensor.getLightValue() > (whiteTrack + specialZone)/2;
+		return lightSensor.getLightValue() > specialZone;
 	}
 	
 	public int getLightError(boolean insideTrack) {
-		int target = insideTrack ? getOffset(innerTrack, specialZone, 0.5) : getOffset(outerTrack, whiteTrack, 0.33);
+		int target = insideTrack ? getOffset(innerTrack, (whiteTrack+specialZone)/2, 0.5) : getOffset(outerTrack, whiteTrack, 0.33);
 		return target - lightSensor.getLightValue();
 	}
 	
@@ -74,6 +86,6 @@ public class SensorManager {
 	}
 	
 	private boolean canSeeObstacle(OpticalDistanceSensor sensor) {
-		return sensor.getDistance() < 125;
+		return sensor.getDistance() < 100;
 	}
 }

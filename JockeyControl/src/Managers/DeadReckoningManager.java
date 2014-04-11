@@ -5,9 +5,13 @@ import lejos.nxt.MotorPort;
 public class DeadReckoningManager {
 	public static final double NinetyDegrees = Math.PI/2;
 	
-	public double x;
-	public double y;
-	public double heading;
+	private double x;
+	private double y;
+	private double heading;
+	
+	private double xOffset;
+	private double yOffset;
+	private double headingOffset;
 	
 	private MotorPort leftMotor;
 	private MotorPort rightMotor;
@@ -23,6 +27,10 @@ public class DeadReckoningManager {
 	private final double radiansPerTick = 2 * Math.PI / ticksPerRotation;
 
 	public DeadReckoningManager(MotorPort left, MotorPort right) {
+		x = 0;
+		y = 0;
+		heading = 0;
+		
 		reset();
 		
 		leftMotor = left;
@@ -32,11 +40,35 @@ public class DeadReckoningManager {
 		lastRightReading = right.getTachoCount();
 	}
 	
+	public double getOverallX() {
+		return x;
+	}
+	
+	public double getCurrentX() {
+		return x - xOffset;
+	}
+	
+	public double getOverallY() {
+		return y;
+	}
+	
+	public double getCurrentY() {
+		return y - yOffset;
+	}
+	
+	public double getOverallHeading() {
+		return heading;
+	}
+	
+	public double getCurrentHeading() {
+		return heading - headingOffset;
+	}
+	
 	public void reset()
 	{
-		x = 0;
-		y = 0;
-		heading = 0;
+		xOffset = x;
+		yOffset = y;
+		headingOffset = heading;
 	}
 	
 	public void updatePosition() {
