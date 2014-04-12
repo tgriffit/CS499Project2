@@ -77,6 +77,8 @@ public class SensorManager {
 	}
 	
 	public int getLightError(boolean insideTrack) {
+		// This line of code is bad and I feel bad about it.
+		// Tries find the current PID error value based on which line of code we're following.
 		int target = insideTrack ? getOffset(innerTrack, (whiteTrack+specialZone)/2, 0.5) : getOffset(outerTrack, whiteTrack, 0.33);
 		return target - lightSensor.getLightValue();
 	}

@@ -24,7 +24,7 @@ public class JockeyRace extends JFrame {
 	private static final long serialVersionUID = 1L;
 
 	private enum Mode {
-		Stop, Wait, Map, Race, Obstacles
+		Stop, Wait, Map, Race
 	}
 
 	private static Mode mode = Mode.Wait;
@@ -52,12 +52,12 @@ public class JockeyRace extends JFrame {
 	
 	private static int allowedError = 30;
 	
-	private static DeadReckoningManager position;
-	private static SensorManager sensors;
-	
 	private static int integral = 0;
 	private static int sqrIntegral = 0;
 	private static int oldError = 0;
+
+	private static DeadReckoningManager position;
+	private static SensorManager sensors;
 	
 	private static boolean foundLine = false;
 	private static boolean sawObstacle = false;
@@ -66,6 +66,7 @@ public class JockeyRace extends JFrame {
 	private static boolean mappingDone = false;
 	private static boolean ignoreRightSensor = false;
 	
+	// Switches jockey to follow the inside track instead of the outside one.
 	private static boolean useInsideTrack = false;
 	
 	public JockeyRace() {
@@ -77,7 +78,7 @@ public class JockeyRace extends JFrame {
 		addKeyListener(bh);
 
 		String cmds = "<html>Buttons:<br>" 
-				+ "m: Map Track<br>"
+				+ "m: Map Track (Unimplemented)<br>"
 				+ "r: Race!<br>"
 				+ "<br>"
 				+ "s: Stop<br>" 
@@ -144,9 +145,6 @@ public class JockeyRace extends JFrame {
 		foundLine = sensors.canSeeEdge();
 		
 		while (mode != Mode.Stop) {
-			//System.out.println(lightSensor.getLightValue());
-			//System.out.println(sensors.getDebugString());
-			
 			switch (mode) {
 			
 			case Map:
@@ -154,8 +152,7 @@ public class JockeyRace extends JFrame {
 				break;
 				
 			case Race:
-				//race();
-				runObstacleCourse();
+				race();
 				break;
 			
 			default:
@@ -172,45 +169,42 @@ public class JockeyRace extends JFrame {
 		System.exit(0);
 	}
 	
-	private static void useCamera() {
-		// NOPE!
-	}
-	
 	private static void mapTrack() {
-		runObstacleCourse();
+		race();
 	}
 	
-	private static void race() {
+	// This was part of our initial attempt, but it was far too error prone.
+	// private static void race() {
 		
-		if (canSeeObstacle()) {
-			// If we find an obstacle, dodge it
-			dodgeObstacle();
+	// 	if (canSeeObstacle()) {
+	// 		// If we find an obstacle, dodge it
+	// 		dodgeObstacle();
 			
-			foundLine = false;
-		}
-		else {
-			if (foundLine) {
-				followTrack();
-			}
-			else {
-				int leftPower = 30;
-				int rightPower = 30;
+	// 		foundLine = false;
+	// 	}
+	// 	else {
+	// 		if (foundLine) {
+	// 			followTrack();
+	// 		}
+	// 		else {
+	// 			int leftPower = 30;
+	// 			int rightPower = 30;
 				
-				if (useInsideTrack) {
-					rightPower *= 5/8;
-				}
-				else {
-					leftPower *= 5/8;
-				}
+	// 			if (useInsideTrack) {
+	// 				rightPower *= 5/8;
+	// 			}
+	// 			else {
+	// 				leftPower *= 5/8;
+	// 			}
 				
-				MotorManager.forward(leftPower, rightPower);
+	// 			MotorManager.forward(leftPower, rightPower);
 				
-				if (sensors.canSeeEdge()) {
-					foundLine = true;
-				}
-			}
-		}
-	}
+	// 			if (sensors.canSeeEdge()) {
+	// 				foundLine = true;
+	// 			}
+	// 		}
+	// 	}
+	// }
 	
 	private static boolean canSeeObstacle() {
 		// We should only react to obstacles if we can see them for more than one frame
@@ -229,6 +223,7 @@ public class JockeyRace extends JFrame {
 		return false;
 	}
 	
+	// An early attempt to dodge obstacles. It was fairly ballistic.
 	private static void dodgeObstacle() {
 		turnRightNDegrees(90, 20);
 		if (!passObstacleOnSide()) {
@@ -242,6 +237,7 @@ public class JockeyRace extends JFrame {
 		turnLeftNDegrees(90, 20);
 	}
 	
+	// Attempts to drive until we can no longer see an obstacle with our side sensor.
 	private static boolean passObstacleOnSide() {
 		boolean sawObstacle = false;
 		boolean canSeeObstacle = sensors.canSeeObstacleToSide();
@@ -269,6 +265,7 @@ public class JockeyRace extends JFrame {
 		return true;
 	}
 	
+	// Uses a PID controller to follow the edge of the track
 	private static int followTrack() {
 		int turn = getPIDCorrection(kp, ki, kd, sensors.getLightError(useInsideTrack));
 		int power = (int)(targetpower * currentmult);
@@ -323,7 +320,7 @@ public class JockeyRace extends JFrame {
 		MotorManager.forward(clamp(power + turn + bonus), clamp(power - turn));
 	}
 	
-	private static void runObstacleCourse() {
+	private static void race() {
 		
 		if(sensors.canSeeObstacleMiddle() || (!ignoreRightSensor && sensors.canSeeObstacleRight())){
 			int angle = 90;
@@ -457,6 +454,9 @@ public class JockeyRace extends JFrame {
 		MotorManager.stahp();
 	}
 	
+	// Part of an abortive simple attempt at mapping. Abandoned because the power issues we were
+	// having before the demo meant that we couldn't trust it to work when we needed it to, but
+	// our normal values worked well.
 	private static void setupValues() {
 		if (mappingDone && !obstaclesFound) {
 			// There were no obstacles, so we can go a little faster
@@ -474,6 +474,7 @@ public class JockeyRace extends JFrame {
 		errorEntry.setText(Integer.toString(allowedError));
 	}
 	
+	// Gets new values for our PID variables from the text boxes
 	private static void commitValues() {
 		kp = new Integer(kpEntry.getText());
 		ki = new Integer(kiEntry.getText());
