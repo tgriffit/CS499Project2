@@ -284,16 +284,6 @@ public class JockeyRace extends JFrame {
 		integral = (int)(integral*0.75 + error);
 		sqrIntegral = (int)(sqrIntegral*0.5 + error*error);
 		
-		// The death turn!
-		if (integral < -26) {
-			skipBadPart = true;
-			arc = 0.75;
-			
-			MotorManager.turnLeft(40);
-			Delay.msDelay(350);
-			return 0;
-		}
-		
 		int turn = p*error + (int)(i*integral) + d*derivative;
 		turn /= 100;
 		
@@ -386,7 +376,17 @@ public class JockeyRace extends JFrame {
 			}
 		}
 		else {
-			followTrack();
+			if (integral < -26) {
+				// This magic number means that we've found the 270 degree turn, so we can race for the finish
+				skipBadPart = true;
+				arc = 0.75;
+				
+				MotorManager.turnLeft(40);
+				Delay.msDelay(350);
+			}
+			else {
+				followTrack();
+			}
 		}
 	}
 	
